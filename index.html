@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Geometry Dash prototype</title>
+  <meta name="keywords" content="geometry dash">
+  <meta name="description" content="Geometry Dash prototype">
+  <link rel="shortcut icon" href="https://static.wikia.nocookie.net/geometry-dash/images/4/4a/Site-favicon.ico"/>
+</head>
+<body>
+<style>
+    canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        left: 0;
+        bottom: 0;
+        background-color: black;
+        
+    }
+</style>
+  <script>
+"use strict";
+
+const kbd = {
+  u: false,
+  d: false,
+  l: false
+};
+const keyCodes = {
+  38: "u"
+};
+document.addEventListener("keydown", e => {
+  if (e.keyCode in keyCodes) {
+    e.preventDefault();
+    kbd[keyCodes[e.keyCode]] = true;
+  }
+});
+document.addEventListener("keyup", e => {
+  if (e.keyCode in keyCodes) {
+    e.preventDefault();
+    kbd[keyCodes[e.keyCode]] = false;
+  }
+});
+
+document.addEventListener("touchstart", e => {
+  kbd.u = true;
+});
+document.addEventListener("touchend", e => {
+  kbd.u = false;
+});
+
+const canvas = document.createElement("canvas");
+document.body.appendChild(canvas);
+canvas.width = 2049 * 3;
+canvas.height = 400;
+const ctx = canvas.getContext("2d");
+var camera = {
+  leftTopPos: { x: 0, y: 0 },
+  size: { x: 0, y: 0 },
+  scale: 1,
+};
+camera.size = {
+  x: canvas.width / camera.scale,
+  y: canvas.height / camera.scale,
+};
+
+
+const gridSize = 30;
+const map = [
+  "####################################################################################################################################################################################################################################",
+  "#..................................................................................................................................................................................................................................#",
+  "#..................................................................................................................................................................................................................................#",
+  "#..................................................................................................................................................................................................................................#",
+  "#..................................................................................................................................................................................................................................#",
+  "#..............................................................................................................................................................@...................................................................#",
+  "#........................................................................................................................................#.....................@...................................................................#",
+  "#..........................................................................................1........................................#..........................@...................................................................#",
+  "#.......................#.............................................................#........................................#...............................@...................................................................#",
+  "#................###111......................1..............1..........1.........#.................................###111###........111111.....................@...................................................................#",
+  "####################################################################################################################################################################################################################################" 
+];
+const player = {
+  x: 2,
+  y: 5,
+  vx: 0,
+  vy: 0,
+  jumping: false,
+  
+  xVelocity: 0.2,     
+  jumpVelocity: 0.28,   
+  gravity: 0.02,       
+  maxGravity: 3.8,      
+  collResolution: 0.2,  
+  inset: 0.05,          
+  
+  updatePosition: function (map) {
+    if (Math.abs(this.vy) < this.maxGravity) {
+      this.vy += this.gravity;
+    }
+    
+    this.y += this.vy;
+    
+    if (this.collides(map)) {
+      if (this.vy > 0) { this.jumping = false; }
+      
+      while (this.collides(map)) {
+        this.y -= this.vy * this.collResolution;
+      }
+      
+      this.vy = 0;
+    }
+    if (this.lose(map)) {
+      if (this.vy > 0) { this.jumping = false; }
+      
+      alert('You lose!');
+      this.updatePosition = {};
+      
+      this.vy = 0;
+    }
+    if (this.win(map)) {
+      if (this.vy > 0) { this.jumping = false; }
+      
+      alert('You win!');
+      this.updatePosition = {};
+      
+      this.vy = 0;
+    }
+    
+    this.x += this.vx;
+    
+    if (this.collides(map)) {
+      
+      while (this.collides(map)) {
+        this.x -= this.vx * this.collResolution;
+      }
+      
+      this.vx = 0;
+    }
+  },
+
+  collides: function (map) {
+    const xL = (this.x + this.inset) | 0;       
+    const xR = Math.ceil((this.x - this.inset)); 
+    const yU = (this.y + this.inset) | 0;        
+    const yD = Math.ceil(this.y - this.inset);   
+    return map[yU] && map[yU][xL] === "#" ||
+           map[yU] && map[yU][xR] === "#" ||
+           map[yD] && map[yD][xL] === "#" ||
+           map[yD] && map[yD][xR] === "#" 
+    ;
+  },
+
+  lose: function (map) {
+    const xL = (this.x + this.inset) | 0;       
+    const xR = Math.ceil((this.x - this.inset)); 
+    const yU = (this.y + this.inset) | 0;        
+    const yD = Math.ceil(this.y - this.inset);   
+    return map[yU] && map[yU][xL] === "1" ||
+           map[yU] && map[yU][xR] === "1" ||
+           map[yD] && map[yD][xL] === "1" ||
+           map[yD] && map[yD][xR] === "1"
+    ;
+  },
+  win: function (map) {
+    const xL = (this.x + this.inset) | 0;       
+    const xR = Math.ceil((this.x - this.inset)); 
+    const yU = (this.y + this.inset) | 0;        
+    const yD = Math.ceil(this.y - this.inset);   
+    return map[yU] && map[yU][xL] === "@" ||
+           map[yU] && map[yU][xR] === "@" ||
+           map[yD] && map[yD][xL] === "@" ||
+           map[yD] && map[yD][xR] === "@"
+    ;
+  },
+  
+  jump: function () {
+    if (!this.jumping) {
+      this.vy = -this.jumpVelocity;
+      this.jumping = true;  //на false не менять!!!
+    }
+  },
+  
+  move: function (dir) {
+    this.vx = dir === "r" ? this.xVelocity : -this.xVelocity;
+  },
+  
+  draw: function (ctx, size) {
+    var base_image = new Image();
+    base_image.src = 'Cube.png';
+    ctx.drawImage(base_image, this.x * size, this.y * size, size, size);
+    //ctx.fillStyle = "#c11";
+    //ctx.fillRect(this.x * size, this.y * size, size, size);
+  }
+}; 
+
+const drawMap = (ctx, map, size) => {
+  //ctx.fillStyle = "#445";
+  ctx.translate(-camera.leftTopPos.x, -camera.leftTopPos.y);
+  
+  for (let i = 0; i < map.length; i++) {
+    for (let j = 0; j < map[i].length; j++) {
+      if (map[i][j] === "#") {
+        ctx.fillRect(j * size, i * size, size, size);
+      } else if (map[i][j] === "/") {
+        ctx.fillRect(j * size, i * size, size, size);
+      } else if (map[i][j] === "@") {
+        ctx.fillStyle = "blue";
+        ctx.fillRect(j * size, i * size, size, size);
+        ctx.fillStyle = "#445";
+      } else if (map[i][j] === "1") {
+        var base_image = new Image();
+        base_image.src = 'spike.png';
+        ctx.drawImage(base_image, j * size, i * size, size, size);
+      }
+      
+      //ctx.strokeRect(j * size, i * size, size, size)
+    }
+
+  }
+};
+
+let dr = 0;
+(function update() {
+  var dir = { x: 0, y: 0 };
+  dir.x += 6
+  dr += 0.2
+
+  camera.leftTopPos.x = dir.x;
+  player.vx = 0;
+
+  if (player.x < dr) {
+    alert('You lose!');
+    player.updatePosition = {};
+  }
+  
+  player.move("r");
+  if (kbd.u) { player.jump(); }
+    
+  player.updatePosition(map);
+  
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.scale(camera.scale, camera.scale);
+  drawMap(ctx, map, gridSize);
+  player.draw(ctx, gridSize);
+  
+  requestAnimationFrame(update);
+})();
+
+var audio = new Audio('ost.mp3');
+audio.play();
+  </script>
+</body>
+</html>
