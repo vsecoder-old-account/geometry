@@ -9,23 +9,25 @@
   <meta name="keywords" content="geometry dash">
   <meta name="description" content="Geometry Dash prototype">
   <link rel="shortcut icon" href="https://static.wikia.nocookie.net/geometry-dash/images/4/4a/Site-favicon.ico"/>
-
-  <link rel="prefetch prerender" href="block.png">
-  <link rel="prefetch prerender" href="Cube.png">
-  <link rel="prefetch prerender" href="decor.png">
-  <link rel="prefetch prerender" href="fone.png">
-  <link rel="prefetch prerender" href="lose.gif">
-  <link rel="prefetch prerender" href="platform.png">
-  <link rel="prefetch prerender" href="spike.png">
-  <link rel="prefetch prerender" href="spikes.png">
-  <link rel="prefetch prerender" href="spikes2.png">
 </head>
 <body>
+  <div style="display: none;">
+    <img src="block.png">
+    <img src="Cube.png">
+    <img src="decor.png">
+    <img src="fone.png">
+    <img src="lose.gif">
+    <img src="platform.png">
+    <img src="spike.png">
+    <img src="spikes.png">
+    <img src="spikes2.png">
+  </div>
   <video autoplay loop muted class="background" id="look">
     <source src="https://thumbs.gfycat.com/BlandGloomyGoldeneye-mobile.mp4" type="video/mp4">
   </video>
   <div class="start" id="look1" onclick="start()"><img src="1.png"></div>
   <div class="lose" id="look2" onclick="window.location.reload()" style="display: none;"><img src="2.png"></div>
+  <div class="win" id="look3" onclick="window.location.reload()" style="display: none;"><img src="win.png"></div>
 <style>
   * {
     box-sizing: border-box;
@@ -46,9 +48,20 @@
   .lose {
     position: fixed;
     top: calc(100%/3.2);
-    left: 22.5%;
     bottom: 0;
-    width: 50%;
+    width: 100%;
+    height: 200px;
+    text-align: center;
+    vertical-align: middle;
+    padding: 44px;
+    cursor: pointer;
+    z-index: 1;
+  }
+  .win {
+    position: fixed;
+    top: calc(100%/3.2);
+    bottom: 0;
+    width: 100%;
     height: 200px;
     text-align: center;
     vertical-align: middle;
@@ -83,11 +96,14 @@
     background-repeat: repeat;
     vertical-align: middle;
   }
+  @media screen and (max-width: 800px){
+    body {transform: rotate(90deg);margin-top: 50%;}
+  }
 </style>
   <script>
 function start() {
-  javascript:(function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='//mrdoob.github.io/stats.js/build/stats.min.js';document.head.appendChild(script);})()
-"use strict";
+  document.body.requestFullscreen()
+javascript:(function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='//mrdoob.github.io/stats.js/build/stats.min.js';document.head.appendChild(script);})()
 document.getElementById('look').remove()
 document.getElementById('look1').remove()
 const kbd = {
@@ -130,7 +146,8 @@ var camera = {
   size: { x: 0, y: 0 },
   scale: 1,
 };
-var lose = false;
+let lose = false;
+let win = false;
 camera.size = {
   x: canvas.width / camera.scale,
   y: canvas.height / camera.scale,
@@ -183,8 +200,7 @@ const player = {
     }
     if (this.lose(map)) {
       if (this.vy > 0) { this.jumping = false; }
-      
-      alert('You lose!');
+    
       lose = true
       
       this.vy = 0;
@@ -192,8 +208,7 @@ const player = {
     if (this.win(map)) {
       if (this.vy > 0) { this.jumping = false; }
       
-      alert('You win!');
-      
+      win = true;
       this.vy = 0;
     }
     
@@ -335,45 +350,48 @@ ctx.save()
 
 let dr = 1.75;
 (function update() {
-  if (!lose) {
-  var dir = { x: 0, y: 0 };
-  dir.x += 6
+  if (!lose || !win) {
+    var dir = { x: 0, y: 0 };
+    dir.x += 6
 
-  ctx.restore();
-  ctx.save()
+    ctx.restore();
+    ctx.save()
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  ctx.translate(-player.x * 30 + 40, -camera.leftTopPos.y);
-  //ctx.translate(-camera.leftTopPos.x, -camera.leftTopPos.y);
-  ctx.scale(camera.scale, camera.scale);
+    ctx.translate(-player.x * 30 + 40, -camera.leftTopPos.y);
+    //ctx.translate(-camera.leftTopPos.x, -camera.leftTopPos.y);
+    ctx.scale(camera.scale, camera.scale);
 
-  player.vx = 0;
+    player.vx = 0;
 
-  if (player.x - 0.25 != dr) {
-    alert('You lose!');
-    lose = true
-  }
-  dr = player.x
-  if (true) {
+    if (player.x - 0.25 != dr) {
+      lose = true
+    }
+    dr = player.x
     player.move("r");
     if (kbd.u) { player.jump(); }
-  }
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.scale(camera.scale, camera.scale);
-  player.updatePosition(map);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.scale(camera.scale, camera.scale);
+    player.updatePosition(map);
 
-  drawMap(ctx, map, gridSize);
-  player.draw(ctx, gridSize);
+    drawMap(ctx, map, gridSize);
+    player.draw(ctx, gridSize);
   
-  requestAnimationFrame(update);
-  } else {
+    requestAnimationFrame(update);
+  } else if (lose) {
+    var audio_lose = new Audio('explode.ogg');
+    audio.play();
     document.getElementById('look2').style.display = 'block';
+  } else {
+    lose = false
+    document.getElementById('look3').style.display = 'block';
   }
 })();
 
 }
+
 var audio = new Audio('ost.mp3');
 audio.play();
   </script>
