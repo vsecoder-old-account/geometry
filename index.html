@@ -9,21 +9,87 @@
   <meta name="keywords" content="geometry dash">
   <meta name="description" content="Geometry Dash prototype">
   <link rel="shortcut icon" href="https://static.wikia.nocookie.net/geometry-dash/images/4/4a/Site-favicon.ico"/>
+
+  <link rel="prefetch prerender" href="block.png">
+  <link rel="prefetch prerender" href="Cube.png">
+  <link rel="prefetch prerender" href="decor.png">
+  <link rel="prefetch prerender" href="fone.png">
+  <link rel="prefetch prerender" href="lose.gif">
+  <link rel="prefetch prerender" href="platform.png">
+  <link rel="prefetch prerender" href="spike.png">
+  <link rel="prefetch prerender" href="spikes.png">
+  <link rel="prefetch prerender" href="spikes2.png">
 </head>
 <body>
+  <video autoplay loop muted class="background" id="look">
+    <source src="https://thumbs.gfycat.com/BlandGloomyGoldeneye-mobile.mp4" type="video/mp4">
+  </video>
+  <div class="start" id="look1" onclick="start()"><img src="1.png"></div>
+  <div class="lose" id="look2" onclick="window.location.reload()" style="display: none;"><img src="2.png"></div>
 <style>
-    canvas {
-        position: fixed;
-        top: 0;
-        left: 0;
-        left: 0;
-        bottom: 0;
-        
-    }
+  * {
+    box-sizing: border-box;
+  }
+  .start {
+    position: fixed;
+    top: calc(100%/3.2);
+    left: 22.5%;
+    bottom: 0;
+    width: 50%;
+    height: 200px;
+    text-align: center;
+    vertical-align: middle;
+    padding: 44px;
+    cursor: pointer;
+    z-index: 1;
+  }
+  .lose {
+    position: fixed;
+    top: calc(100%/3.2);
+    left: 22.5%;
+    bottom: 0;
+    width: 50%;
+    height: 200px;
+    text-align: center;
+    vertical-align: middle;
+    padding: 44px;
+    cursor: pointer;
+    z-index: 1;
+  }
+  .background {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    left: 0;
+    bottom: 0;
+    z-index: -1;
+
+  }
+  body {
+    width: 99%;
+    height: 100%;
+    background-color: black;
+  }
+  canvas {
+    position: fixed;
+    top: calc(100%/3.2);
+    left: 0;
+    left: 0;
+    bottom: 0;
+    background-color: blue;
+    background-image: url("fone.png");
+    background-repeat: repeat;
+    vertical-align: middle;
+  }
 </style>
   <script>
+function start() {
+  javascript:(function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='//mrdoob.github.io/stats.js/build/stats.min.js';document.head.appendChild(script);})()
 "use strict";
-
+document.getElementById('look').remove()
+document.getElementById('look1').remove()
 const kbd = {
   u: false,
   d: false,
@@ -54,8 +120,10 @@ document.addEventListener("touchend", e => {
 
 const canvas = document.createElement("canvas");
 document.body.appendChild(canvas);
-canvas.width = 2049 * 3;
+canvas.width = window.screen.width;
+document.body.width = window.screen.width;
 canvas.height = 320;
+document.body.height = window.screen.height;
 const ctx = canvas.getContext("2d");
 var camera = {
   leftTopPos: { x: 0, y: 0 },
@@ -71,17 +139,17 @@ camera.size = {
 
 const gridSize = 30;
 const map = [
-  "####################################################################################################################################################################################################################################",
-  "#..................................................................................................................................................................................................................................#",
-  "#..................................................................................................................................................................................................................................#",
-  "#..................................................................................................................................................................................................................................#",
-  "#..................................................................................................................................................................................................................................#",
-  "#..............................................................................................................................................................@...................................................................#",
-  "#........................................................................................................................................#.....................@...................................................................#",
-  "#..........................................................................................1........................................#..........................@...................................................................#",
-  "#.......................#.............................................................#........................................#...............................@...................................................................#",
-  "#................###111......................1..............1..........1.........#.................................###111###........111111.....................@...................................................................#",
-  "####################################################################################################################################################################################################################################" 
+  "########################################################################################################################################",
+  "#......................................................................................................................................#",
+  "#......................................................................................................................................#",
+  "#......................................................................................................................................#",
+  "#......................................................................................................................................#",
+  "#.....................................................................................................................................@#",
+  "#...............................~.....~......~.....~..................................................................................@#",
+  "#...........................~............~............~.....................................................#.........................@#",
+  "#......................~~..................................~~~~~~~~~....~......................##~~#...#....~.........................@#",
+  "#................###111.................#222222222222222222222222222222222222#...............###...#1..#...3333.......................@#",
+  "########################################################################################################################################" 
 ];
 const player = {
   x: 2,
@@ -90,9 +158,9 @@ const player = {
   vy: 0,
   jumping: false,
   
-  xVelocity: 0.2,     
-  jumpVelocity: 0.28,   
-  gravity: 0.02,       
+  xVelocity: 0.25,     
+  jumpVelocity: 0.42,   
+  gravity: 0.04,       
   maxGravity: 3.8,      
   collResolution: 0.2,  
   inset: 0.05,          
@@ -125,7 +193,6 @@ const player = {
       if (this.vy > 0) { this.jumping = false; }
       
       alert('You win!');
-      this.updatePosition = {};
       
       this.vy = 0;
     }
@@ -148,9 +215,13 @@ const player = {
     const yU = (this.y + this.inset) | 0;        
     const yD = Math.ceil(this.y - this.inset);   
     return map[yU] && map[yU][xL] === "#" ||
+           map[yU] && map[yU][xR] === "#" ||
+           map[yD] && map[yD][xL] === "#" ||
            map[yD] && map[yD][xR] === "#" ||
 
            map[yU] && map[yU][xL] === "~" ||
+           map[yU] && map[yU][xR] === "~" ||
+           map[yD] && map[yD][xL] === "~" ||
            map[yD] && map[yD][xR] === "~"
     ;
   },
@@ -161,12 +232,18 @@ const player = {
     const yU = (this.y + this.inset) | 0;        
     const yD = Math.ceil(this.y - this.inset);   
     return map[yU] && map[yU][xL] === "1" ||
+           map[yU] && map[yU][xR] === "1" ||
+           map[yD] && map[yD][xL] === "1" ||
            map[yD] && map[yD][xR] === "1" ||
 
            map[yU] && map[yU][xL] === "2" ||
+           map[yU] && map[yU][xR] === "2" ||
+           map[yD] && map[yD][xL] === "2" ||
            map[yD] && map[yD][xR] === "2" ||
 
            map[yU] && map[yU][xL] === "3" ||
+           map[yU] && map[yU][xR] === "3" ||
+           map[yD] && map[yD][xL] === "3" ||
            map[yD] && map[yD][xR] === "3"
     ;
   },
@@ -176,6 +253,8 @@ const player = {
     const yU = (this.y + this.inset) | 0;        
     const yD = Math.ceil(this.y - this.inset);   
     return map[yU] && map[yU][xL] === "@" ||
+           map[yU] && map[yU][xR] === "@" ||
+           map[yD] && map[yD][xL] === "@" ||
            map[yD] && map[yD][xR] === "@"
     ;
   },
@@ -208,7 +287,8 @@ const player = {
 
 const drawMap = (ctx, map, size) => {
   //ctx.fillStyle = "#445";
-  ctx.translate(-camera.leftTopPos.x, -camera.leftTopPos.y);
+  //ctx.clearRect(0, 0, window.screen.width, window.screen.height);
+  //ctx.translate(-camera.leftTopPos.x, -camera.leftTopPos.y);
   
   for (let i = 0; i < map.length; i++) {
     for (let j = 0; j < map[i].length; j++) {
@@ -237,7 +317,7 @@ const drawMap = (ctx, map, size) => {
       } else if (map[i][j] === "~") {
         var base_image = new Image();
         base_image.src = 'platform.png';
-        ctx.drawImage(base_image, j * size, i * size, size, size);
+        ctx.drawImage(base_image, j * size, i * size, size, size / 2);
       } else if (map[i][j] === "+") {
         var base_image = new Image();
         base_image.src = 'decor.png';
@@ -245,39 +325,55 @@ const drawMap = (ctx, map, size) => {
       }
       
       //ctx.strokeRect(j * size, i * size, size, size)
+      
     }
-
   }
 };
 
-let dr = 0;
+ctx.save()
+
+
+let dr = 1.75;
 (function update() {
+  if (!lose) {
   var dir = { x: 0, y: 0 };
   dir.x += 6
-  dr += 0.2
+
+  ctx.restore();
+  ctx.save()
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.translate(-player.x * 30 + 40, -camera.leftTopPos.y);
+  //ctx.translate(-camera.leftTopPos.x, -camera.leftTopPos.y);
+  ctx.scale(camera.scale, camera.scale);
 
   player.vx = 0;
 
-  if (player.x < dr) {
+  if (player.x - 0.25 != dr) {
     alert('You lose!');
     lose = true
   }
-  if (!lose) {
-    camera.leftTopPos.x = dir.x;
+  dr = player.x
+  if (true) {
     player.move("r");
     if (kbd.u) { player.jump(); }
   }
-    
-  player.updatePosition(map);
-  
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.scale(camera.scale, camera.scale);
+  player.updatePosition(map);
+
   drawMap(ctx, map, gridSize);
   player.draw(ctx, gridSize);
   
   requestAnimationFrame(update);
+  } else {
+    document.getElementById('look2').style.display = 'block';
+  }
 })();
 
+}
 var audio = new Audio('ost.mp3');
 audio.play();
   </script>
